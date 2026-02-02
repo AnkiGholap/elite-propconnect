@@ -10,9 +10,10 @@ const connectDB = async () => {
 
   try {
     const mongoURI = process.env.MONGODB_URI || "mongodb://localhost:27017/elite-propconnect";
+    console.log("Connecting to MongoDB at:", mongoURI.replace(/\/\/([^:]+):([^@]+)@/, "//$1:****@"));
 
     const conn = await mongoose.connect(mongoURI, {
-      serverSelectionTimeoutMS: 5000, // Timeout after 5 seconds
+      serverSelectionTimeoutMS: 30000,
     });
 
     isConnected = true;
