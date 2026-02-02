@@ -33,10 +33,9 @@ const connectDB = async () => {
   } catch (error) {
     isConnected = false;
     console.error(`MongoDB Connection Error: ${error.message}`);
-    console.error("Please ensure MongoDB is running or update MONGODB_URI in .env");
-    console.error("You can:");
-    console.error("  1. Start MongoDB locally: mongod");
-    console.error("  2. Use MongoDB Atlas (cloud): Update MONGODB_URI in .env");
+    // Retry connection after 5 seconds
+    console.log("Retrying MongoDB connection in 5 seconds...");
+    setTimeout(connectDB, 5000);
   }
 };
 

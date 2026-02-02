@@ -8,28 +8,16 @@ const propertyRoutes = require("./routes/properties");
 const leadRoutes = require("./routes/leads");
 const adminRoutes = require("./routes/admin");
 const categoryRoutes = require("./routes/categories");
+const uploadRoutes = require("./routes/upload");
 
 const app = express();
 
 // Connect to database
 connectDB();
 
-// CORS Configuration - Allow frontend to communicate with backend
-const allowedOrigins = [
-  "http://localhost:3000",
-  "http://127.0.0.1:3000",
-  process.env.FRONTEND_URL,
-].filter(Boolean).map((url) => url.replace(/\/$/, ""));
-
+// CORS Configuration - Allow all origins
 const corsOptions = {
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.log("CORS blocked origin:", origin);
-      callback(null, true); // Allow all origins temporarily for debugging
-    }
-  },
+  origin: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
@@ -55,6 +43,7 @@ app.use("/api/properties", propertyRoutes);
 app.use("/api/leads", leadRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/upload", uploadRoutes);
 
 // 404 handler
 app.use((req, res) => {

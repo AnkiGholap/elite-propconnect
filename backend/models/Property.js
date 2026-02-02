@@ -93,6 +93,10 @@ const propertySchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    banner: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,
