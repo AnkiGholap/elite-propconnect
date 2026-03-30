@@ -1,16 +1,17 @@
 const express = require("express");
 const router = express.Router();
-const mongoose = require("mongoose");
 const Category = require("../models/Category");
+const connectDB = require("../config/db");
 
-const checkDBConnection = (req, res, next) => {
-  if (mongoose.connection.readyState !== 1) {
-    return res.status(503).json({ message: "Database not connected." });
+// Ensure database is connected before handling requests
+router.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch {
+    res.status(503).json({ message: "Database not connected." });
   }
-  next();
-};
-
-router.use(checkDBConnection);
+});
 
 // Get all categories (public - used by property form)
 router.get("/", async (req, res) => {
