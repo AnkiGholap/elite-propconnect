@@ -17,21 +17,73 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const [username, setUsername] = useState("Admin");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Skip layout for login page
+  const isLoginPage = pathname === "/admin/login";
 
   useEffect(() => {
+    // Skip auth check for login page
+    if (isLoginPage) {
+      setIsLoading(false);
+      return;
+    }
+
     const stored = localStorage.getItem("user");
     if (stored) {
       try {
         const user = JSON.parse(stored);
-        setUsername(user.username || "Admin");
-      } catch {}
+        if (user.role === "admin") {
+          setUsername(user.username || "Admin");
+          setIsAuthenticated(true);
+        } else {
+          // User is not admin, redirect to login
+          router.replace("/admin/login");
+        }
+      } catch {
+        router.replace("/admin/login");
+      }
+    } else {
+      // No user stored, redirect to login
+      router.replace("/admin/login");
     }
-  }, []);
+    setIsLoading(false);
+  }, [isLoginPage, router]);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
-    router.push("/");
+    router.push("/admin/login");
   };
+
+  // Render login page without layout
+  if (isLoginPage) {
+    return <>{children}</>;
+  }
+
+  // Show loading while checking auth
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Not authenticated, show nothing (redirect is happening)
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Redirecting to login...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-950 flex">
