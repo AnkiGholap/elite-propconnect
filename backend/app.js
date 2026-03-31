@@ -8,6 +8,7 @@ const propertyRoutes = require("./routes/properties");
 const leadRoutes = require("./routes/leads");
 const adminRoutes = require("./routes/admin");
 const categoryRoutes = require("./routes/categories");
+const locationRoutes = require("./routes/locations");
 const uploadRoutes = require("./routes/upload");
 
 const app = express();
@@ -43,6 +44,7 @@ app.use("/api/properties", propertyRoutes);
 app.use("/api/leads", leadRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/locations", locationRoutes);
 app.use("/api/upload", uploadRoutes);
 
 // 404 handler

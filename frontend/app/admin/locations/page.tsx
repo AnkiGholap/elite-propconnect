@@ -1,0 +1,184 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { API_URL } from "@/lib/api";
+
+interface Location {
+  _id: string;
+  name: string;
+  status: "active" | "inactive";
+  createdAt: string;
+}
+
+export default function LocationsManagement() {
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [newName, setNewName] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+
+  const fetchLocations = () => {
+    setLoading(true);
+    fetch(`${API_URL}/locations`)
+      .then((res) => res.json())
+      .then((data) => setLocations(data.locations || []))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => { fetchLocations(); }, []);
+
+  const addLocation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newName.trim()) return;
+    setAdding(true);
+    try {
+      const res = await fetch(`${API_URL}/locations`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newName.trim() }),
+      });
+      if (res.ok) {
+        setNewName("");
+        fetchLocations();
+      } else {
+        const data = await res.json();
+        alert(data.message || "Error adding location");
+      }
+    } catch { alert("Error adding location"); }
+    setAdding(false);
+  };
+
+  const updateLocation = async (id: string, update: { name?: string; status?: string }) => {
+    try {
+      await fetch(`${API_URL}/locations/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(update),
+      });
+      setEditId(null);
+      fetchLocations();
+    } catch { alert("Error updating location"); }
+  };
+
+  const deleteLocation = async (id: string) => {
+    if (!confirm("Delete this location?")) return;
+    try {
+      await fetch(`${API_URL}/locations/${id}`, { method: "DELETE" });
+      fetchLocations();
+    } catch { alert("Error deleting location"); }
+  };
+
+  return (
+    <div>
+      <h1 className="text-2xl font-bold text-white mb-8">Locations Master</h1>
+
+      {/* Add Location */}
+      <form onSubmit={addLocation} className="flex gap-3 mb-8">
+        <input
+          type="text"
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          placeholder="Enter new location name"
+          className="flex-1 max-w-md bg-gray-800 border border-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:border-amber-500 transition-colors"
+        />
+        <button
+          type="submit"
+          disabled={adding || !newName.trim()}
+          className="bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-black font-semibold px-6 py-3 rounded-lg transition-colors"
+        >
+          {adding ? "Adding..." : "+ Add Location"}
+        </button>
+      </form>
+
+      {loading ? (
+        <div className="flex items-center justify-center h-64">
+          <div className="w-8 h-8 border-4 border-amber-400 border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : (
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-800">
+                <th className="text-left text-gray-400 font-medium px-6 py-4 text-sm">#</th>
+                <th className="text-left text-gray-400 font-medium px-6 py-4 text-sm">Location Name</th>
+                <th className="text-left text-gray-400 font-medium px-6 py-4 text-sm">Status</th>
+                <th className="text-left text-gray-400 font-medium px-6 py-4 text-sm">Created</th>
+                <th className="text-left text-gray-400 font-medium px-6 py-4 text-sm">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {locations.map((loc, index) => (
+                <tr key={loc._id} className="border-b border-gray-800/50 hover:bg-gray-800/30">
+                  <td className="px-6 py-4 text-gray-500">{index + 1}</td>
+                  <td className="px-6 py-4">
+                    {editId === loc._id ? (
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          className="bg-gray-800 border border-gray-600 text-white rounded px-3 py-1.5 text-sm focus:outline-none focus:border-amber-500"
+                          autoFocus
+                        />
+                        <button
+                          onClick={() => updateLocation(loc._id, { name: editName })}
+                          className="bg-green-500/20 text-green-400 px-3 py-1.5 rounded text-sm hover:bg-green-500/30"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => setEditId(null)}
+                          className="bg-gray-700 text-gray-300 px-3 py-1.5 rounded text-sm hover:bg-gray-600"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-white font-medium">{loc.name}</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    <select
+                      value={loc.status}
+                      onChange={(e) => updateLocation(loc._id, { status: e.target.value })}
+                      className={`border-0 rounded-lg px-3 py-1.5 text-xs font-medium focus:outline-none cursor-pointer ${
+                        loc.status === "active" ? "bg-green-500/20 text-green-400" : "bg-gray-700 text-gray-400"
+                      }`}
+                    >
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
+                  </td>
+                  <td className="px-6 py-4 text-gray-400 text-sm">
+                    {new Date(loc.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => { setEditId(loc._id); setEditName(loc.name); }}
+                        className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 px-3 py-1.5 rounded-lg text-sm transition-colors"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => deleteLocation(loc._id)}
+                        className="bg-red-500/20 text-red-400 hover:bg-red-500/30 px-3 py-1.5 rounded-lg text-sm transition-colors"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {locations.length === 0 && (
+            <p className="text-center text-gray-500 py-12">No locations found. Add one above.</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

@@ -37,10 +37,10 @@ export default function HomePage() {
 
   const fetchLocations = async () => {
     try {
-      const res = await fetch(`${API_URL}/properties/locations`);
+      const res = await fetch(`${API_URL}/locations?status=active`);
       const data = await res.json();
       if (res.ok) {
-        setLocations(data.locations);
+        setLocations((data.locations || []).map((loc: { name: string }) => loc.name));
       }
     } catch {
       console.error("Failed to fetch locations");

@@ -25,6 +25,7 @@ export default function PropertyForm() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(!!isEdit);
   const [categories, setCategories] = useState<{ _id: string; name: string }[]>([]);
+  const [locations, setLocations] = useState<{ _id: string; name: string }[]>([]);
   const [uploading, setUploading] = useState<Record<string, boolean>>({});
   const [newAmenity, setNewAmenity] = useState("");
   const [newHighlight, setNewHighlight] = useState("");
@@ -33,6 +34,10 @@ export default function PropertyForm() {
     fetch(`${API_URL}/categories?status=active`)
       .then((res) => res.json())
       .then((data) => setCategories(data.categories || []))
+      .catch(console.error);
+    fetch(`${API_URL}/locations?status=active`)
+      .then((res) => res.json())
+      .then((data) => setLocations(data.locations || []))
       .catch(console.error);
   }, []);
 
@@ -179,7 +184,12 @@ export default function PropertyForm() {
           </div>
           <div>
             <label className={labelClass}>Location *</label>
-            <input className={inputClass} value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} required />
+            <select className={inputClass} value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} required>
+              <option value="">Select Location</option>
+              {locations.map((loc) => (
+                <option key={loc._id} value={loc.name}>{loc.name}</option>
+              ))}
+            </select>
           </div>
           <div>
             <label className={labelClass}>Type *</label>
